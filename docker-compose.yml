@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  bd:
+    image: mariadb:10
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Passw0rd
+      #MYSQL_ROOT_HOST: "%"      
+    volumes:
+      - "./schema.sql:/docker-entrypoint-initdb.d/schema.sql"
+  
+  customers:
+    image: customers
+    build: 
+      context: Customers.API
+      #dockerfile: Dockerfile
+    ports:
+      - "5016:80"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Development"
+    depends_on:
+      - bd
+
+volumes:
+  db:
+    driver: local

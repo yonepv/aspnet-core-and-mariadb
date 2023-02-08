@@ -1,148 +1,110 @@
 # Microservice Example using .NET and MariaDB
 
-⚠️ **[UNMAINTAINED]** This repository has been moved and is currently maintained [here](https://github.com/mariadb-developers/microservices-dotnet). ⚠️
+This example enriched (dockerized and docker-compose) the original example here:
 
-<br />
+- [github repository](https://github.com/mariadb-developers/microservices-dotnet)
+- [Readme original](README_original.md)
 
-This repository provides a simple example of a microservice architecture using a [Microsoft .NET](https://dotnet.microsoft.com/en-us/learn/dotnet/what-is-dotnet) solution that contains:
+The file docker-compose contains:
+- A service for the mariadb in container and runs the query schema.sql to create the databases (customer_db and product_db) and tables (customers, products).
+- The customers API
 
-* Two microservice ([Web API](https://dotnet.microsoft.com/en-us/apps/aspnet/apis)) projects 
-* One API Gateway project
+## Running the example
 
-
-<p align="center" spacing="10">
-    <kbd>
-        <img src="media/topology.PNG" />
-    </kbd>
-</p>
-
-# Table of Contents
-1. [Requirements](#requirements)
-2. [Introduction to MariaDB](#introduction)
-    1. [MariaDB](#platform)
-    2. [MariaDB in the cloud](#skysql)
-3. [Getting started](#get-started)
-    1. [Get the code](#code)
-    2. [Create the schema](#schema)
-    3. [Anatomy of the app](#app)
-    4. [Confifgure the application](#config)
-    5. [Build and run the app](#build-run)
-4. [Requirements to run the app](#requirements)
-5. [Support and contribution](#support-contribution)
-6. [License](#license)
-
-## Requirements <a name="requirements"></a>
-
-This sample application will require the following to be installed on your machine:
-
-* [.NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-* [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
-* [MariaDB command-line client](https://mariadb.com/products/skysql/docs/clients/) (optional), used to connect to and query MariaDB databases.
-
-## Introduction to MariaDB <a name="introduction"></a>
-
-### MariaDB <a name="platform"></a>
-
-[MariaDB Platform](https://mariadb.com/products/mariadb-platform/) integrates [transactional](https://mariadb.com/products/mariadb-platform-transactional/) and [analytical](https://mariadb.com/products/mariadb-platform-analytical/) products so developers can build modern applications by enriching transactions with real-time analytics and historical data, creating insightful experiences and compelling opportunities for customers – and for businesses, endless ways to monetize data. 
-
-<p align="center" spacing="10">
-    <kbd>
-        <img src="media/platform.png" />
-    </kbd>
-</p>
-
-To get started using MariaDB locally you can choose one of the following options:
-
-* [Download and install MariaDB (Community or Enterprise) directly from mariadb.com](https://mariadb.com/downloads) 
-
-* [Download and install MariaDB using the official MariaDB Community Server 10.6 Docker Image available at hub.docker.com](https://hub.docker.com/_/mariadb)
-
-### MariaDB in the cloud <a name="skysql">
-
-[SkySQL](https://mariadb.com/products/skysql/) is the first and only database-as-a-service (DBaaS) to bring the full power of MariaDB Platform to the cloud, including its support for transactional, analytical and hybrid workloads. Built on Kubernetes, and optimized for cloud infrastructure and services, SkySQL combines ease of use and self-service with enterprise reliability and world-class support – everything needed to safely run mission-critical databases in the cloud, and with enterprise governance.
-
-[Get started with SkySQL!](https://mariadb.com/skyview)
-
-<p align="center" spacing="10">
-    <kbd>
-        <img src="media/skysql.png" />
-    </kbd>
-</p>
-
-## Get started <a name="get-started"></a>
-
-In order to run the TODO application you will need to have a MariaDB instance to connect to. For more information please check out "[Get Started with MariaDB](https://mariadb.com/get-started-with-mariadb/)".
-
-### Get the code <a name="code"></a>
-
-Download this code directly or use [git](git-scm.org) (through CLI or a client) to retrieve the code using `git clone`:
-
-```
-$ git clone https://github.com/mariadb-corporation/dev-example-microservices-dotnet.git
-```
-
-### Create the schema <a name="schema"></a>
-
-[Connect to the database](https://mariadb.com/kb/en/connecting-to-mariadb/) and execute the following SQL scripts using the following options:
-
-1.) Using the MariaDB command-line client to execute the SQL contained within [schema.sql](schema.sql).
-
-_Example command:_
+`docker-compose up`to run the containers (mariadb and the customers api)
 ```bash
-$ mariadb --host HOST_ADDRESS --port PORT_NO --user USER --password PASSWORD < schema.sql
+docker-compose up
+```
+`docker-compose down`to stop and remove the containers (mariadb and the customers api)
+```bash
+docker-compose down
 ```
 
-2.) Copying, pasting and executing the scripts contained in [schema.sql](schema.sql) using a client of your choice.
+## Testing the application
 
-```sql
-CREATE DATABASE customer_db;
+Open a browser and access the customers application with the url:
 
- CREATE TABLE customer_db.`customers` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+http://localhost:5016/api/customers
 
-CREATE DATABASE product_db;
+![customers api](media/customers-api.png)
 
-CREATE TABLE product_db.`products` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `description` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+Initially the response will be empty, but we can execute operations with customers with the help of swagger:
+
+In another tab in the browser, open the swagger UI:
+
+http://localhot:5016/swagger
+
+![swagger-ui](media/swagger-ui.png)
+
+For example to add a customer to the database:
+
+![swagger-ui create customer](media/swagger-ui-post-customer.png)
+
+Back again to the application url, refresh the browser to have the results with the customer added by swagger.
+
+## Access to the database
+
+Also we can access the database by command line:
+
+Execute the command `docker ps` to have the name of the container for the database:
+
+```bash
+docker ps
+CONTAINER ID   IMAGE        COMMAND                  CREATED         STATUS         PORTS                                       NAMES
+5e7be47c8dc5   customers    "dotnet Customers.AP…"   4 minutes ago   Up 4 minutes   0.0.0.0:5016->5016/tcp, :::5016->5016/tcp   dev-example-microservices-dotnet-mariadb_customers_1
+adbd9daa5e94   mariadb:10   "docker-entrypoint.s…"   4 minutes ago   Up 4 minutes   0.0.0.0:3307->3306/tcp, :::3307->3306/tcp   dev-example-microservices-dotnet-mariadb_bd_1
 ```
 
-### Anatomy of the app <a name="app"></a>
+Get the database IP with the command `docker inspect`
+```bash
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' dev-example-microservices-dotnet-mariadb_bd_1 
+172.20.0.2
+```
 
-This application is made of three parts:
+Access the database:
+```bash
+mariadb -h 172.20.0.2 -u root -p
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 3
+Server version: 10.10.3-MariaDB-1:10.10.3+maria~ubu2204 mariadb.org binary distribution
 
-* [Customers.API](Customers.API) - a .NET 6 REST project that uses [Entity Framework 6](https://docs.microsoft.com/en-us/ef/ef6/) to connect to and communicate with an underlying MariaDB database.
-* [Products.API](Products.API) - a .NET 6 REST project that uses [Entity Framework 6](https://docs.microsoft.com/en-us/ef/ef6/) to connect to and communicate with an underlying MariaDB database.
-* [Gateway.API](Gateway.API) - a .NET project that uses [Ocelot](https://github.com/ThreeMammals/Ocelot) to function as an API gateway for the Customers.API and Products.API microservices.
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
 
-### Confifgure the application to use your MariaDB database <a name="config"></a>
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+```
 
-For the `Customers.API` and `Products.API` microservice projects to use your MariaDB database they must first be configured. The projects already contain connection strings, but depending on your setup you may need to update them.
+The we can execute sql commands like:
+- `show databases` to display the databases
+  ```bash
+  MariaDB [(none)]> show databases;
+    +--------------------+
+    | Database           |
+    +--------------------+
+    | customer_db        |
+    | information_schema |
+    | mysql              |
+    | performance_schema |
+    | product_db         |
+    | sys                |
+    +--------------------+
+    6 rows in set (0.011 sec)
+  ```
+- `use <database>` where database could be for example customer_db to access the specified database.
+  ```bash
+  MariaDB [(none)]> use customer_db
+    Reading table information for completion of table and column names
+    You can turn off this feature to get a quicker startup with -A
 
-To do that, update the connection string configuration in the projects' appsettings.json files:
-
-* [Customers.API appsettings.json](Customers.API/appsettings.json)
-* [Products.API appsettings.json](Products.API/appsettings.json)
-
-### Build and run the app <a name="build-run"></a>
-
-Depending on how you've setup your environment you may have the option to build and run .NET solutions using:
-
-* [Visual Studio](https://docs.microsoft.com/en-us/visualstudio/ide/walkthrough-building-an-application?view=vs-2022) - build and run the solution by first opening the [Demo.sln file](Demo.sln]) using the Visual Studio IDE
-* [dotnet CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-run) - build and run the solution by using the dotnet command with the [Demo.sln file](Demo.sln).
-
-## Support and Contribution <a name="support-contribution"></a>
-
-Thanks so much for taking a look at this sample app! As this is a simple example, there's plenty of potential for improvement and customization. Please feel free to submit PR's to the project to include your modifications!
-
-If you have any questions, comments, or would like to contribute to this or future projects like this please reach out to us directly at [developers@mariadb.com](mailto:developers@mariadb.com) or on [Twitter](https://twitter.com/mariadb).
-
-## License <a name="license"></a>
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=plastic)](https://opensource.org/licenses/MIT)
+    Database changed
+  ```  
+- `show tables` to display the table in the selected database:
+  ```bash
+  MariaDB [customer_db]> show tables;
+    +-----------------------+
+    | Tables_in_customer_db |
+    +-----------------------+
+    | customers             |
+    +-----------------------+
+    1 row in set (0.000 sec)
+  ```
